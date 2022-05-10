@@ -1,0 +1,18 @@
+{
+  "name": "group8finalproject",
+  "version": "1.0.0",
+  "description": "This is the final group project for IST 4035",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index"
+  },
+  "author": "Tina Kimberly, Carolyne Wahito, Timothy Diero, Collins Kanyanya",
+  "license": "ISC",
+  "dependencies": {
+    "chart.js": "^3.7.1",
+    "express": "^4.17.3",
+    "http": "^0.0.1-security",
+    "url": "^0.11.0"
+  }
+}
