@@ -1,0 +1,67 @@
+// REST Web Services Section
+//Definitios of our races api endpoints and routes.
+
+const path = require('path')
+const fs = require('fs/promises')
+const url = require('url')
+
+const { writeContent } = require('../utils/utils')
+const {
+    getResponses,
+    postResponse
+} = require('../controllers/responseController')
+
+const handler = {}
+
+handler.handleReqRes = (req, res) => {
+    const allowedMethods = ['get', 'post', 'put', 'delete']
+    const reqMethod = req.method.toLowerCase()
+    let reqBody = ''
+    let parsedUrl = url.parse(req.url, true)
+    const queryString = parsedUrl.query
+    const parsedUrlWithQuery = parsedUrl.path.replace(/^\/+|\/+$|\??$/g, '')
+    // Parse only the route without unwanted slashes and question mark
+    parsedUrl = parsedUrl.pathname.replace(/^\/+|\/+$|\??$/g, '')
+
+    req.on('data', (chunkData) => {
+        reqBody += chunkData
+    })
+
+    // When the full payload comes then 'end' event emit on request
+    req.on('end', async () => {
+        // If a client requests with unwanted method throw error
+        if (allowedMethods.indexOf(reqMethod) < 0) {
+            writeContent(res, 405, { status: 'Requested method is not allowed' })
+            return
+        }
+
+        // ! Get all responses - /api/responses
+        if (parsedUrl === 'api/responses' && reqMethod === 'get') {
+            getResponses(req, res)
+            return
+        }
+
+        // ! Post single response - /api/responses
+        if (parsedUrl === 'api/responses' && reqMethod === 'post') {
+            postResponse(req, res, reqBody)
+            return
+        }
+
+        // If url is empty, load index html
+        if (parsedUrl === '') {
+            parsedUrl = 'index.html'
+        }
+
+        // Static site generation for application frontend
+        try {
+            // File path wise mimetype set.
+            const filePath = path.resolve(__dirname, '../public', parsedUrl)
+            const fileContent = await fs.readFile(filePath, 'utf-8')
+            writeContent(res, 200, fileContent, false, filePath)
+        } catch (e) {
+            writeContent(res, 404, { status: '404 Route not found' })
+        }
+    })
+}
+
+module.exports = handler
